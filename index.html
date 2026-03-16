@@ -254,6 +254,14 @@
         const historyContainer = document.getElementById('history');
         const clearHistoryBtn = document.getElementById('clearHistory');
 
+        const EXCEPTIONS = [
+            9, 18, 15, 24, 33, 36, 41, 42, 45, 56, 72, 75, 81, 90, 99, 
+            102, 108, 152, 165, 171, 177, 180, 196, 210, 225, 228, 232, 234, 
+            241, 243, 252, 255, 261, 270, 279, 280, 288, 297, 312, 315, 324, 
+            332, 330, 339, 348, 351, 357, 366, 375, 401, 405, 410, 414, 417, 
+            419, 432, 446, 455, 468, 476, 484, 485, 502, 513
+        ];
+
         let isSpinning = false;
 
         function playTick() {
@@ -313,6 +321,24 @@
                 return;
             }
 
+            // Get existing winners from history
+            const historyItems = historyContainer.querySelectorAll('.history-item span:first-child');
+            const historyWinners = Array.from(historyItems).map(el => parseInt(el.textContent.replace('#', '')));
+            
+            // Calculate pool of available numbers
+            const availableNumbers = [];
+            for (let i = min; i <= max; i++) {
+                if (!EXCEPTIONS.includes(i) && !historyWinners.includes(i)) {
+                    availableNumbers.push(i);
+                }
+            }
+
+            if (availableNumbers.length === 0) {
+                statusLabel.textContent = "HẾT SỐ ĐỂ QUAY!";
+                statusLabel.style.color = "#ef4444";
+                return;
+            }
+
             isSpinning = true;
             spinBtn.disabled = true;
             spinBtn.style.filter = "grayscale(1)";
@@ -328,13 +354,15 @@
                 const remaining = endTime - now;
 
                 if (remaining > 0) {
+                    // For the visual effect, just pick any random number in range
                     const randomVal = Math.floor(Math.random() * (max - min + 1)) + min;
                     resultNumber.textContent = randomVal.toString().padStart(3, '0');
                     
                     if (Math.random() > 0.3) playTick();
                     requestAnimationFrame(update);
                 } else {
-                    const winner = Math.floor(Math.random() * (max - min + 1)) + min;
+                    // Pick the final winner from available pool
+                    const winner = availableNumbers[Math.floor(Math.random() * availableNumbers.length)];
                     resultNumber.textContent = winner.toString().padStart(3, '0');
                     resultNumber.classList.remove('spinning-effect');
                     
